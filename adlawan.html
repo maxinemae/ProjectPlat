@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="CodeHim">
+    <title>Simple Grocery List </title>
+    
+    <link href='https://fonts.googleapis.com/css?family=Archivo+Narrow' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="css/style.css">
+	<link rel="stylesheet" href="css/demo.css">
+    <style>
+@import url('https://fonts.googleapis.com/css?family=Irish+Grover');
+@import url('https://fonts.googleapis.com/css?family=Aldrich');
+@import url('https://fonts.googleapis.com/css?family=Nova+Mono');
+html {
+  box-sizing: border-box;
+  font-family: "Archivo Narrow", sans-serif;
+  font-size: 18px;
+  height: 100%;
+}
+
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
+body {
+  margin: 0;
+  height: 100%;
+}
+
+a {
+  color: white;
+}
+
+header,
+footer {
+  color: white;
+  background-color: #004A55;
+  width: 100%;
+  text-align: center;
+  padding: 0.5em;
+  position: relative;
+}
+footer,
+.push {
+  height: 2em;
+}
+
+.wrapper {
+  margin: 0 auto -2em;
+  min-height: 100%;
+}
+
+form {
+  width: inherit;
+}
+
+label {
+  display: block;
+  line-height: 1.5em;
+
+}
+
+input {
+  width: inherit;
+  padding: 1em;
+}
+
+.delete, button {
+  color: rgb(151, 16, 16);
+  background-color: rgb(248, 9, 9);
+}
+
+button {
+  border: 0;
+  padding: 1em;
+  width: inherit;
+  margin: 0.75em 0;
+}
+
+.icon {
+  display: inline-block;
+  width: 0.9em;
+  height: 0.9em;
+  margin-right: 0.25em;
+  fill: #004A55;
+}
+
+#bought-list li:before, #shopping-list li:before {
+  content: "";
+  display: inline-block;
+  background-size: 100%;
+  height: 0.9em;
+  width: 1em;
+  margin-right: 0.3em;
+}
+#shopping-list li:before {
+  background-image: url("https://res.cloudinary.com/ddy54k4ks/image/upload/v1454106412/svg/checkmark2.svg");
+}
+#bought-list li:before {
+  background-image: url("https://res.cloudinary.com/ddy54k4ks/image/upload/v1454106412/svg/checkmark.svg");
+}
+
+ul {
+  list-style: none;
+  margin: 0 auto;
+  padding: 0;
+}
+
+li {
+  color: #004A55;
+  padding: 0.75em;
+  cursor: pointer;
+  margin: 0.5em 0;
+  border: 1px solid #004A55;
+  position: relative;
+  transition: background-color 0.2s;
+}
+li:hover {
+  background-color: #A7CDCC;
+}
+
+.quantity {
+  color: #f80915;
+}
+.quantity:before {
+  content: "(";
+}
+.quantity:after {
+  content: ")";
+}
+
+.delete {
+  float: right;
+  padding: inherit;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+.delete:after {
+  clear: both;
+}
+
+#bought-list li {
+  background-color: #F6F6F6;
+}
+#bought-list li .quantity {
+  color: #666666;
+}
+
+.list__label {
+  border-bottom: 2px solid rgb(23, 105, 172);
+  font-size: 0.75em;
+  color: #004A55;
+  padding: 0;
+  font-family: Aldrich, sans-serif;
+}
+h1{
+    font-family: "Irish Grover", cursive;
+    color: rgba(79, 145, 184, 0.667);
+    font-size: 2rem;
+}
+header{
+    font-family: "Nova Mono", monospace;
+}
+    </style>
+  
+  </head>
+  <body>
+ <header class="intro">
+ <h1><u>Grocery List App</u> </h1>
+ </header>
+ <main>
+   <div class="wrapper">
+  <header>add it directly to your list</header>
+  <main></main>
+    <form>
+      <label for="item-input">Item</label>
+      <input type="text" id="item-input">
+      <label for="quantity-input">Quantity</label>
+      <input type="number" id="quantity-input">
+      <button type="submit" id="submit-btn">Add</button>
+    </form>
+
+    <div id="lists">
+      <p class="list__label">Still need to grab <span class="quantity" id="shopping-num"></span></p>
+      <ul id="shopping-list">
+      </ul>
+      <p class="list__label">In Cart <span class="quantity" id="bought-num"></span></p>
+      <ul id="bought-list">
+      </ul>
+    </div>
+
+  </main>
+  <div class="push"></div>
+</div>
+<footer>
+    <a href="https://github.com/AbdelrahmanHassan888" target="_blank">@adlawanmark</a>
+  </footer>  
+ </main>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-alpha1/jquery.min.js'></script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.1/lodash.min.js'></script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.2.3/backbone-min.js'></script>
+<script>const classNames = {
+    DELETE: "delete" };
+  const logger = {
+    logging: false,
+    log(msg) {
+      if (this.logging) console.log(msg);
+    } };
+
+  const itemProto = {
+    bought: false,
+    toggle() {
+      this.bought = !this.bought;
+      this.trigger("toggled", this);
+    } };
+  
+  const items = {
+    list: [],
+  
+    add(item) {
+      let newItem = Object.create(itemProto);
+      Object.assign(newItem, item, Backbone.Events);
+      newItem.on("toggled", function (item) {
+        logger.log("toggled");
+        view.addToList(item);
+      });
+      newItem.id = _.uniqueId();
+      this.list.push(newItem);
+      this.trigger("itemAdded", newItem);
+      this.trigger("updated");
+    },
+  
+    delete(id) {
+      logger.log("delete: " + id);
+      let item = _.find(items.list, {
+        "id": id });
+  
+      view.remove(item.$el);
+  
+      this.list = _.pull(this.list, item);
+      this.trigger("updated");
+    },
+  
+    toggle(id) {
+      _.find(items.list, {
+        "id": id }).
+      toggle();
+  
+      this.trigger("updated");
+    } };
+  
+  const app = {
+    init() {
+      view.init();
+      Object.assign(items, Backbone.Events);
+      items.on("itemAdded", function (item) {
+        logger.log("item added");
+        view.addToList(item);
+      });
+  
+      items.on("updated", function () {
+        logger.log("updated");
+        view.updateQuantities();
+      });
+    } };
+  
+  const view = {
+    init() {
+  
+      this.$shoppingList = $("#shopping-list");
+      this.$boughtList = $("#bought-list");
+      this.$form = $("form");
+  
+      const handleSubmit = function (e) {
+        e.preventDefault();
+  
+        let name = $("#item-input"),
+        quantity = $("#quantity-input");
+  
+        if (name.val()) {
+          items.add({
+            name: name.val(),
+            quantity: quantity.val() || 1 });
+  
+        }
+        name.val("");
+        quantity.val("");
+  
+      };
+  
+      const handleClick = function (e) {
+        e.preventDefault();
+        logger.log("Clicked");
+  
+        if (e.target.nodeName === "LI") {
+          let id = $(e.target).data("id").toString();
+          items.toggle(id);
+        } else if (e.target.className === classNames.DELETE) {
+          let id = $(e.target).parent().data("id").toString();
+          items.delete(id);
+        }
+      };
+  
+      const handleDelete = function (e) {
+        e.preventDefault();
+        logger.log("Delete: " + item);
+        let id = $(e.target).data("id").toString(),
+        item = _.find(items.list, {
+          "id": id });
+  
+      };
+  
+      $("#lists").on("click", handleClick);
+      this.$form.on("submit", handleSubmit);
+      $("." + classNames.DELETE).on("click", handleDelete);
+  
+    },
+  
+    addToList(item, list) {
+      let $item = item.$el || this.createListItem(item);
+  
+      if (item.bought) {
+        $item.prependTo(this.$boughtList);
+      } else {
+        $item.appendTo(this.$shoppingList);
+      }
+    },
+  
+    updateQuantities() {
+      logger.log("updateQuantities");
+      $("#shopping-num").html(this.$shoppingList.children().length);
+      $("#bought-num").html(this.$boughtList.children().length);
+    },
+  
+    remove($el) {
+      $el.remove();
+    },
+  
+    createListItem(item) {
+      item.$el = $(`<li data-id=${item.id}>${item.name} <span class="quantity">${item.quantity}</span><span class="delete">X</span></li>`);
+  
+      return item.$el;
+    },
+  
+    getListItem(id) {
+      let $el = $("li[data-id='" + id + "']");
+      return $el.length ? $el : null;
+    },
+  
+    render(items) {
+      logger.log("render");
+  
+      this.$shoppingList.empty();
+      this.$boughtList.empty();
+  
+      items.forEach(item => {
+        let $item = $(`<li data-id=${item.id}>${item.name}<span>${item.quantity}</span></li>`);
+  
+        if (item.bought) {
+          this.$boughtList.append($item);
+          $item.addClass("bought");
+        } else {
+          this.$shoppingList.append($item);
+        }
+      });
+  
+    } };
+  
+  app.init();
+  
+  items.add({
+    name: "Wine",
+    quantity: 1 });
+  
+  
+  items.add({
+    name: "Cheese",
+    quantity: 1 });
+  
+  
+  items.add({
+    name: "Dark chocolate",
+    quantity: 1 });</script>
+      
+  </body>
+</html>
